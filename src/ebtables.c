@@ -19,6 +19,7 @@
  */
 
 #include "config.h"
+#ifdef __USE_EBTABLES__
 #include "debug.h"
 
 #include <sys/socket.h>
@@ -84,3 +85,4 @@ void ebtables_del(const struct in_addr* yip, const uint8_t* mac, const char* ifn
 	         inet_ntoa(*yip), ifname, ether_ntoa_z((struct ether_addr *)mac));
 	ebtables_run(cmd);
 }
+#endif

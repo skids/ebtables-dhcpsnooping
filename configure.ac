@@ -105,6 +105,21 @@ AC_ARG_ENABLE(pgsql, [  --enable-pgsql          enable PostgreSQL support], [
 	fi
 ])
 
+#check if we want ebtables
+AC_ARG_ENABLE(ebtables, [  --enable-ebtables          enable ebtables support], [
+	if test "x$enableval" != "xno"; then
+		AC_DEFINE([__USE_EBTABLES__], , [Enable ebtables support])
+	fi
+])
+
+#check if we want nftables
+AC_ARG_ENABLE(nftables, [  --enable-nftables          enable nftables support], [
+	if test "x$enableval" != "xno"; then
+		AC_DEFINE([__USE_NFTABLES__], , [Enable nftables support])
+	fi
+])
+
+
 # Checks for header files.
 AC_HEADER_STDC
 

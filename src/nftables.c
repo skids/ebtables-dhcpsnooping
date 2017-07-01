@@ -37,7 +37,7 @@
 #define NFSETPREFIX "dhcpsnoop-leases-"
 #endif
 #ifndef NFTABLE
-#define NFTABLE "bridge dhcpsnoop"
+#define NFTABLE "dhcpsnoop"
 #endif
 #ifndef NFTABLES
 #define NFTABLES "nft"
@@ -58,7 +58,7 @@ void nftables_add(const struct in_addr* yip, const uint8_t* mac, const char* ifn
 	assert(yip); assert(mac); assert(ifname);
 	eprintf(DEBUG_VERBOSE, "add nftables element: MAC: %s IP: %s VLAN: %s", ether_ntoa_z((struct ether_addr *)mac), inet_ntoa(*yip), ifname);
 
-	snprintf(cmd, sizeof(cmd), NFTABLES " add element " NFTABLE " " NFSETPREFIX "%s { %s . %s }",
+	snprintf(cmd, sizeof(cmd), NFTABLES " add element bridge " NFTABLE " " NFSETPREFIX "%s { %s . %s }",
 	         ifname, ether_ntoa_z((struct ether_addr *)mac), inet_ntoa(*yip));
 	nftables_run(cmd);
 }
@@ -69,7 +69,7 @@ void nftables_del(const struct in_addr* yip, const uint8_t* mac, const char* ifn
 	assert(yip); assert(mac); assert(ifname);
 	eprintf(DEBUG_VERBOSE, "delete nftables element: MAC: %s IP: %s VLAN: %s", ether_ntoa_z((struct ether_addr *)mac), inet_ntoa(*yip), ifname);
 
-	snprintf(cmd, sizeof(cmd), NFTABLES " delete element " NFTABLE " " NFSETPREFIX "%s { %s . %s }",
+	snprintf(cmd, sizeof(cmd), NFTABLES " delete element bridge " NFTABLE " " NFSETPREFIX "%s { %s . %s }",
 	         ifname, ether_ntoa_z((struct ether_addr *)mac), inet_ntoa(*yip));
 	nftables_run(cmd);
 }

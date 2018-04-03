@@ -115,7 +115,8 @@ void set_broadcast_addr(int c)
 			h = strtoul(buf, &end, 10);
 			/* No trailing text.  Bounds check. */
 			if (!*end && h <= 32) {
-				h = 0xffffffff << (32 - h);
+				/* << width of type is undefined behaviour */
+				h = h ? ( 0xffffffff << (32 - h) ) : 0x00000000;
 				networkMask.s_addr = htonl(h);
 			}
 			else {
@@ -271,23 +272,8 @@ void udp_receive(int udpsocket, void* ctx)
 	handle_udp_message(buf, recvlen);
 }
 
-static __attribute__((constructor)) void udp_init()
-{
-        static struct option bcport_option = {"broadcast-port", required_argument, 0, 3};
-        static struct option bcaddr_option = {"broadcast-addr", required_argument, 0, 3};
-        add_option_cb(bcport_option, set_broadcast_port);
-        add_option_cb(bcaddr_option, set_broadcast_addr);
-
-	networkPort = NETWORKPORT;
-	inet_pton(AF_INET, NETWORKADDR, &networkAddr);
-	inet_pton(AF_INET, NETWORKMASK, &networkMask);
-	broadcastAddr = networkAddr;
-	broadcastAddr.s_addr |= ~networkMask.s_addr;
-
-	gethostname(myhostname, sizeof(myhostname));
-	myhostname[sizeof(myhostname)-1]='\0';
-
-	eprintf(DEBUG_ERROR,  "Listen to broadcasts for dhcp notifications");
+void udp_start_listen(void *ctx) {
+	eprintf(DEBUG_ERROR,  "Listen to broadcasts for dhcp notifications on port %d", networkPort);
 	int udpsocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (udpsocket < 0) {
 		eprintf(DEBUG_ERROR, "udp socket: %s", strerror(errno));
@@ -314,6 +300,25 @@ static __attribute__((constructor)) void udp_init()
 	}
 
 	cb_add_handle(udpsocket, NULL, udp_receive);
+}
+
+static __attribute__((constructor)) void udp_init()
+{
+        static struct option bcport_option = {"broadcast-port", required_argument, 0, 3};
+        static struct option bcaddr_option = {"broadcast-addr", required_argument, 0, 3};
+        add_option_cb(bcport_option, set_broadcast_port);
+        add_option_cb(bcaddr_option, set_broadcast_addr);
+
+	networkPort = NETWORKPORT;
+	inet_pton(AF_INET, NETWORKADDR, &networkAddr);
+	inet_pton(AF_INET, NETWORKMASK, &networkMask);
+	broadcastAddr = networkAddr;
+	broadcastAddr.s_addr |= ~networkMask.s_addr;
+
+	gethostname(myhostname, sizeof(myhostname));
+	myhostname[sizeof(myhostname)-1]='\0';
+
+	cb_add_timer(0, 0, NULL, udp_start_listen);
 	add_updated_lease_hook(sendLease,3);
 }
 
